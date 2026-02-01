@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/CMakeFiles/bootloader
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/CMakeFiles/bootloader.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/CMakeFiles/bootloader-complete.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+C:/Emus/Tb_cooling/code/Cooling_project/build/esp32dev/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
