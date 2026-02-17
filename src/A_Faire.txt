@@ -1,5 +1,0 @@
--Ajout d'un serveur avec le esp
--Affichages des donnes sur ecran LCD
--Calcul mathematique conversion triac
--PID
--Conversion donnes (temperature, rpm, frequence)
