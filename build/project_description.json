@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Cooling_project",
-    "project_version":    "dec59ab-dirty",
+    "project_version":    "162193c-dirty",
     "project_path":       "C:/Session4/Projet/Code/EspCom/S4_EspCom",
     "idf_path":           "C:/esp/v5.5.2/esp-idf",
     "build_dir":          "C:/Session4/Projet/Code/EspCom/S4_EspCom/build",

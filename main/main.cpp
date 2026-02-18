@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-// ⚠️ Remplace par la MAC de l'autre ESP (peer)
+// Adresse MAC du Recepteur
 static const uint8_t peer_mac[6] = { 0x20, 0x6E, 0xF1, 0x09, 0xB3, 0xA0 };
 
 #define MSG_DATA_LEN 2  // longueur du message en octets
