@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include "esp_err.h"
 
-// ⚠️ Ajout indispensable : TickType_t est défini ici
+// Ajout indispensable : TickType_t est défini ici
 #include "freertos/FreeRTOS.h"
 
 #ifdef __cplusplus

@@ -845,13 +845,6 @@ C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/com/CMakeFiles/list_insta
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/com/CMakeFiles/install.dir
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/com/CMakeFiles/install/local.dir
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/com/CMakeFiles/install/strip.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/__idf_lcd_i2c.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/edit_cache.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/rebuild_cache.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/list_install_components.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/install.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/install/local.dir
-C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/CMakeFiles/install/strip.dir
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/init/CMakeFiles/__idf_init.dir
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/init/CMakeFiles/edit_cache.dir
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/init/CMakeFiles/rebuild_cache.dir

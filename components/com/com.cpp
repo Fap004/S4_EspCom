@@ -1,4 +1,4 @@
-#include "com.h"
+#include "Com.h"
 
 #include "esp_now.h"
 #include "esp_wifi.h"
@@ -39,18 +39,25 @@ static void espnow_send_cb(const esp_now_send_info_t *info, esp_now_send_status_
 
 static void espnow_recv_cb(const esp_now_recv_info_t *recv_info, const uint8_t *data, int len)
 {
-    if (!data || len != (int)sizeof(msg_t)) return; // on attend exactement msg_t
+    if (!data || len != (int)sizeof(msg_t)) return;
 
-    const uint16_t cur  = rx_w;
-    const uint16_t next = (uint16_t)((cur + 1) % MAX_MESSAGES);
+    uint16_t cur  = rx_w;
+    uint16_t next = (uint16_t)((cur + 1) % MAX_MESSAGES);
 
-    if (next != rx_r) { // pas plein
-        memcpy(&rx_buffer[cur], data, sizeof(msg_t));
-        rx_w = next;
-        if (msg_queue) {
-            uint16_t idx = cur;
-            // callback dans tâche Wi‑Fi ⇒ xQueueSend (pas FromISR)
-            (void)xQueueSend(msg_queue, &idx, 0);
+    // Si ring plein, on drop l’ancien le plus vieux pour faire de la place
+    if (next == rx_r) {
+        rx_r = (uint16_t)((rx_r + 1) % MAX_MESSAGES);
+    }
+
+    memcpy(&rx_buffer[cur], data, sizeof(msg_t));
+
+    if (msg_queue) {
+        uint16_t idx = cur;
+        if (xQueueSend(msg_queue, &idx, 0) == pdTRUE) {
+            rx_w = next; // ✅ avancer w uniquement si l’index est en queue
+        } else {
+            // Queue pleine malgré le drop? on abandonne ce message (ne pas avancer rx_w)
+            // (Option: retenter en dropant un autre ancien, mais garde ça simple au début)
         }
     }
 }
@@ -67,7 +74,8 @@ void com_init(uint8_t channel)
 
     // NVS (obligatoire pour Wi‑Fi)
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
         ESP_ERROR_CHECK(nvs_flash_erase());
         ESP_ERROR_CHECK(nvs_flash_init());
     }
@@ -122,7 +130,8 @@ esp_err_t com_send(const uint8_t mac[6], const uint8_t *data, size_t len)
     xSemaphoreTake(tx_sem, portMAX_DELAY);
     esp_err_t err = esp_now_send(mac, (const uint8_t*)&m, sizeof(m));
 
-    if (err != ESP_OK) {
+    if (err != ESP_OK)
+    {
         // ne jamais bloquer si erreur immédiate
         xSemaphoreGive(tx_sem);
     }
@@ -134,11 +143,13 @@ int com_read_msg(uint8_t *out_data, size_t *out_len, uint16_t *out_seq)
     if (!msg_queue) return 0;
 
     uint16_t idx;
-    if (xQueueReceive(msg_queue, &idx, 0) == pdTRUE) {
+    if (xQueueReceive(msg_queue, &idx, 0) == pdTRUE)
+    {
         const msg_t *m = &rx_buffer[idx];
         // vérifier le CRC
         uint16_t crc = esp_crc16_le(UINT16_MAX, (const uint8_t*)&m->seq, sizeof(m->seq) + MSG_DATA_LEN);
-        if (crc == m->crc) {
+        if (crc == m->crc)
+        {
             if (out_seq)  *out_seq  = m->seq;
             if (out_len)  *out_len  = MSG_DATA_LEN;
             if (out_data) memcpy(out_data, m->data, MSG_DATA_LEN);
@@ -156,7 +167,8 @@ int com_read_msg_wait(uint8_t *out_data, size_t *out_len, uint16_t *out_seq, Tic
 {
     if (!msg_queue) return 0;
     uint16_t idx;
-    if (xQueueReceive(msg_queue, &idx, ticks_to_wait) == pdTRUE) {
+    if (xQueueReceive(msg_queue, &idx, ticks_to_wait) == pdTRUE)
+    {
         const msg_t *m = &rx_buffer[idx];
         uint16_t crc = esp_crc16_le(UINT16_MAX, (const uint8_t*)&m->seq, sizeof(m->seq) + MSG_DATA_LEN);
         if (crc == m->crc) {

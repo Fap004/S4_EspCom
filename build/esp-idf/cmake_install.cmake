@@ -564,11 +564,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/lcd_i2c/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/init/cmake_install.cmake")
 endif()
 

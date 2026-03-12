@@ -133,3 +133,30 @@ Taille message : 2 octets
 Fréquence TX : ~500 Hz
 Champs : vitesse (13 bits), id (3 bits)
 Log RX : toutes 250 ms (configurable)
+
+Pin utilisé:
+
+    Driver 1
+        GPIO4->INA_1
+        GPIO5->INB_1
+        GPIO6->SEL0_1
+        GPIO0->PWM_1
+        GPIO7->CS_1
+
+     Driver 2       
+        GPIO1->INA_2
+        GPIO10->INB_2
+        GPIO11->SEL0_2
+        GPIO13->PWM_2
+        GPIO12->CS_2
+
+    Servo
+        GPIO23->PWM_Servo
+
+    Encodeur 1
+        GPIO22->C1_Enc_1
+        GPIO21->C2_Enc_1
+
+    Encodeur 2
+        GPIO20->C1_Enc_2
+        GPIO19->C2_Enc_2

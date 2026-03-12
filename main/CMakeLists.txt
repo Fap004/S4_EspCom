@@ -5,6 +5,5 @@ idf_component_register(
         "."
     REQUIRES
         com
-        lcd_i2c
         init
 )
