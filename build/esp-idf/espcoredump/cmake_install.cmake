@@ -1,4 +1,4 @@
-# Install script for directory: C:/esp/v5.5.2/esp-idf/components/espcoredump
+# Install script for directory: C:/esp/v5.5.3/esp-idf/components/espcoredump
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

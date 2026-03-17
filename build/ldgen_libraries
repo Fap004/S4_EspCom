@@ -22,6 +22,7 @@ C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/vfs/libvfs.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_driver_uart/libesp_driver_uart.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_ringbuf/libesp_ringbuf.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_mm/libesp_mm.a
+C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_psram/libesp_psram.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/vfs/libvfs.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_driver_usb_serial_jtag/libesp_driver_usb_serial_jtag.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_vfs_console/libesp_vfs_console.a
@@ -95,6 +96,7 @@ C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/cxx/libcxx.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_timer/libesp_timer.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_driver_gptimer/libesp_driver_gptimer.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_ringbuf/libesp_ringbuf.a
+C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_psram/libesp_psram.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_driver_uart/libesp_driver_uart.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/app_trace/libapp_trace.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_event/libesp_event.a
@@ -132,6 +134,7 @@ C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp-tls/libesp-tls.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_adc/libesp_adc.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_driver_cam/libesp_driver_cam.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_eth/libesp_eth.a
+C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_hal_ieee802154/libesp_hal_ieee802154.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_hid/libesp_hid.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/tcp_transport/libtcp_transport.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_http_client/libesp_http_client.a
@@ -151,6 +154,7 @@ C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/wear_levelling/libwear_le
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/fatfs/libfatfs.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/wear_levelling/libwear_levelling.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/ieee802154/libieee802154.a
+C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/esp_hal_ieee802154/libesp_hal_ieee802154.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/json/libjson.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/mqtt/libmqtt.a
 C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/nvs_sec_provider/libnvs_sec_provider.a

@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 // Données utiles envoyées (2 octets comme dans l'exemple)
-#define MSG_DATA_LEN 2
+#define MSG_DATA_LEN 8
 
 // Taille du buffer circulaire et de la queue RX
 #define MAX_MESSAGES   256
