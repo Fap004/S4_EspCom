@@ -39,11 +39,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader/esp-idf/esp_hw_support/port/esp32c6/cmake_install.cmake")
+  include("C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader/esp-idf/esp_hw_support/port/esp32c6/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader/esp-idf/esp_hw_support/lowpower/cmake_install.cmake")
+  include("C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader/esp-idf/esp_hw_support/lowpower/cmake_install.cmake")
 endif()
 

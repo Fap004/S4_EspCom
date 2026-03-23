@@ -1,4 +1,4 @@
-# Install script for directory: C:/Session4/Projet/Code/EspCom/S4_EspCom/components/init
+# Install script for directory: C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/components/init
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

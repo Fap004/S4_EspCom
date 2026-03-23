@@ -10,18 +10,18 @@ if(NOT EXISTS "C:/esp/v5.5.3/esp-idf/components/bootloader/subproject")
   file(MAKE_DIRECTORY "C:/esp/v5.5.3/esp-idf/components/bootloader/subproject")
 endif()
 file(MAKE_DIRECTORY
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader"
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix"
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/tmp"
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp"
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/src"
-  "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/tmp"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/src"
+  "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp"
 )
 
 set(configSubDirs )
 foreach(subDir IN LISTS configSubDirs)
-    file(MAKE_DIRECTORY "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
+    file(MAKE_DIRECTORY "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp/${subDir}")
 endforeach()
 if(cfgdir)
-  file(MAKE_DIRECTORY "C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
+  file(MAKE_DIRECTORY "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader-prefix/src/bootloader-stamp${cfgdir}") # cfgdir has leading slash
 endif()
