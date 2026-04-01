@@ -15,6 +15,8 @@
 #include <inttypes.h>
 
 #include "Uart.h"
+
+#include "driver/uart.h"
  
 // MAC du robot
 
@@ -396,23 +398,27 @@ static void vTaskTerminal(void* arg)
 
 static void vTaskUartTest(void* arg)
 {
-    int16_t rpmL = 0;
-    int16_t rpmR = 0;
-
+    uint8_t val = 0;
     while (true)
     {
-        rpmL += 100;
-        rpmR += 150;
-        if (rpmL > 3000) rpmL = 0;
-        if (rpmR > 3000) rpmR = 0;
-
-        uart_basys_send_rpm(rpmL, rpmR);
-        printf("[UART TEST] Envoi Basys -> rpmL=%d rpmR=%d\n", rpmL, rpmR);
-
+        uart_write_bytes(UART_NUM_1, (const char*)&val, 1);
+        printf("[TX] envoi byte=%d\n", val);
+        val++;
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
  
+static void vTaskAngleMonitor(void* arg)
+{
+    while (true)
+    {
+        int8_t byte;
+        if (uart_zybo_read_angle(&byte))
+            printf("[RX] recu byte=%d\n", byte);
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 extern "C" void app_main(void)
@@ -446,6 +452,7 @@ extern "C" void app_main(void)
     // Décommente pour lancer la séquence automatique au démarrage :
 
     //xTaskCreate(vTaskTestSequence, "seq_task", 4096, NULL, 2, NULL);
-    xTaskCreate(vTaskUartTest,  "uart_test",  2048, NULL, 2, NULL);
+    //xTaskCreate(vTaskUartTest,  "uart_test",  2048, NULL, 2, NULL);
+    xTaskCreate(vTaskAngleMonitor, "angle_mon", 2048, NULL, 2, NULL);
 
 }

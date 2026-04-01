@@ -1,69 +1,52 @@
 #include "Uart.h"
-
 #include "driver/uart.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
-
 #include <string.h>
+#include <stdlib.h>
 
 static const char *TAG = "UART";
 
-// Queue interne : angles validés prêts à être consommés
-#define ANGLE_QUEUE_LEN  16
 static QueueHandle_t s_angle_queue = NULL;
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Tâche RX Zybo : lit octet par octet, valide le checksum
+// TX loopback : envoie un byte qui incrémente chaque seconde
 // ──────────────────────────────────────────────────────────────────────────────
-static void vTaskUartZyboRx(void *arg)
+static void vTaskUartLoopbackTx(void *arg)
 {
-    uint8_t frame[UART_ZYBO_FRAME_LEN];
-
+    uint8_t val = 0;
     while (true)
     {
-        // Lecture bloquante du premier octet (angle)
-        int n = uart_read_bytes(UART_ZYBO_PORT,
-                                &frame[0], 1,
-                                portMAX_DELAY);
-        if (n <= 0) continue;
-
-        // Lecture du checksum avec timeout 10 ms
-        n = uart_read_bytes(UART_ZYBO_PORT,
-                            &frame[1], 1,
-                            pdMS_TO_TICKS(10));
-        if (n <= 0) {
-            ESP_LOGW(TAG, "Zybo: timeout checksum");
-            continue;
-        }
-
-        // Validation XOR
-        uint8_t expected = (uint8_t)frame[0];   // XOR d'un seul byte = lui-même
-        if (frame[1] != expected) {
-            ESP_LOGW(TAG, "Zybo: bad checksum got=0x%02X exp=0x%02X",
-                     frame[1], expected);
-            continue;
-        }
-
-        int8_t angle = (int8_t)frame[0];
-
-        // Clamp -90..+90
-        if (angle < -90) angle = -90;
-        if (angle >  90) angle =  90;
-
-        // Envoie dans la queue (non-bloquant : on écrase si plein)
-        if (xQueueSend(s_angle_queue, &angle, 0) != pdTRUE)
-            ESP_LOGW(TAG, "Zybo: angle queue full, dropping");
+        uart_write_bytes(UART_NUM_1, (const char*)&val, 1);
+        val++;
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// RX : affiche chaque byte reçu
+// ──────────────────────────────────────────────────────────────────────────────
+static void vTaskUartZyboRx(void *arg)
+{
+    uint8_t byte;
+    while (true)
+    {
+        int n = uart_read_bytes(UART_NUM_1, &byte, 1, portMAX_DELAY);
+        if (n == 1)
+        {
+            int8_t val = (int8_t)byte;
+            if (s_angle_queue)
+                xQueueSend(s_angle_queue, &val, 0);
+        }
+    }
+}
+// ──────────────────────────────────────────────────────────────────────────────
 void uart_bridge_init(void)
 {
-    // ── UART0 : Zybo (RX seulement) ──────────────────────────────────────
-    uart_config_t cfg_zybo = {
+    uart_config_t cfg = {
         .baud_rate  = UART_BAUD,
         .data_bits  = UART_DATA_8_BITS,
         .parity     = UART_PARITY_DISABLE,
@@ -71,40 +54,23 @@ void uart_bridge_init(void)
         .flow_ctrl  = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_DEFAULT,
     };
-    ESP_ERROR_CHECK(uart_param_config(UART_ZYBO_PORT, &cfg_zybo));
-    ESP_ERROR_CHECK(uart_set_pin(UART_ZYBO_PORT,
-                                 UART_PIN_NO_CHANGE,  // TX — laissé au terminal
-                                 UART_ZYBO_RX_PIN,
+
+    ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &cfg));
+    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1,
+                                 UART_BASYS_TX_PIN,  // TX → GPIO 19
+                                 UART_ZYBO_RX_PIN,   // RX ← GPIO 16
                                  UART_PIN_NO_CHANGE,
                                  UART_PIN_NO_CHANGE));
-   ESP_ERROR_CHECK(uart_driver_install(UART_ZYBO_PORT, 512, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_1, 512, 256, 0, NULL, 0));
 
-    // ── UART1 : Basys (TX seulement) ─────────────────────────────────────
-    uart_config_t cfg_basys = {
-        .baud_rate  = UART_BAUD,
-        .data_bits  = UART_DATA_8_BITS,
-        .parity     = UART_PARITY_DISABLE,
-        .stop_bits  = UART_STOP_BITS_1,
-        .flow_ctrl  = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
-    ESP_ERROR_CHECK(uart_param_config(UART_BASYS_PORT, &cfg_basys));
-    ESP_ERROR_CHECK(uart_set_pin(UART_BASYS_PORT,
-                                 UART_BASYS_TX_PIN,
-                                 UART_PIN_NO_CHANGE,  // RX — inutilisé
-                                 UART_PIN_NO_CHANGE,
-                                 UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_driver_install(UART_BASYS_PORT, 512, 256, 0, NULL, 0));
-
-    // ── Queue angles ──────────────────────────────────────────────────────
     s_angle_queue = xQueueCreate(ANGLE_QUEUE_LEN, sizeof(int8_t));
     configASSERT(s_angle_queue != NULL);
 
-    // ── Tâche RX Zybo ─────────────────────────────────────────────────────
-    xTaskCreate(vTaskUartZyboRx, "uart_zybo_rx", 2048, NULL, 4, NULL);
+    xTaskCreate(vTaskUartZyboRx,     "uart_rx", 2048, NULL, 4, NULL);
+    xTaskCreate(vTaskUartLoopbackTx, "uart_tx", 2048, NULL, 3, NULL);
 
-    ESP_LOGI(TAG, "UART bridge ready — %d baud | Zybo RX=GPIO%d | Basys TX=GPIO%d",
-             UART_BAUD, UART_ZYBO_RX_PIN, UART_BASYS_TX_PIN);
+    ESP_LOGI(TAG, "UART1 pret — RX GPIO%d | TX GPIO%d | %d baud",
+             UART_ZYBO_RX_PIN, UART_BASYS_TX_PIN, UART_BAUD);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -123,5 +89,5 @@ void uart_basys_send_rpm(int16_t rpmL, int16_t rpmR)
         (uint8_t)(rpmR >> 8),
         (uint8_t)(rpmR & 0xFF),
     };
-    uart_write_bytes(UART_BASYS_PORT, (const char *)frame, sizeof(frame));
+    uart_write_bytes(UART_BASYS_PORT, (const char*)frame, sizeof(frame));
 }

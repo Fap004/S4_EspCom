@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Cooling_project",
-    "project_version":    "3b8a3d9-dirty",
+    "project_version":    "9fb3e05-dirty",
     "project_path":       "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom",
     "idf_path":           "C:/esp/v5.5.3/esp-idf",
     "build_dir":          "C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build",
