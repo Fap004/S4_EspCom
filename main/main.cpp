@@ -13,6 +13,8 @@
 #include <stdlib.h>
 
 #include <inttypes.h>
+
+#include "Uart.h"
  
 // MAC du robot
 
@@ -123,6 +125,8 @@ static void vTaskRx(void* arg)
         printf("t=%" PRIu32 " ms | rpmL=%d | rpmR=%d | seq=%u | count=%d\n",
 
                timestamp, rpmL, rpmR, seq, msg_count);
+
+        uart_basys_send_rpm(rpmL, rpmR);
 
     }
 
@@ -387,6 +391,27 @@ static void vTaskTerminal(void* arg)
     }
 
 }
+
+//TEST UART SIMON 
+
+static void vTaskUartTest(void* arg)
+{
+    int16_t rpmL = 0;
+    int16_t rpmR = 0;
+
+    while (true)
+    {
+        rpmL += 100;
+        rpmR += 150;
+        if (rpmL > 3000) rpmL = 0;
+        if (rpmR > 3000) rpmR = 0;
+
+        uart_basys_send_rpm(rpmL, rpmR);
+        printf("[UART TEST] Envoi Basys -> rpmL=%d rpmR=%d\n", rpmL, rpmR);
+
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
  
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -399,6 +424,8 @@ extern "C" void app_main(void)
     com_init(channel);
 
     com_add_peer(robot_mac);
+
+    uart_bridge_init(); //UART 
  
     uint8_t my_mac[6];
 
@@ -418,7 +445,7 @@ extern "C" void app_main(void)
  
     // Décommente pour lancer la séquence automatique au démarrage :
 
-    xTaskCreate(vTaskTestSequence, "seq_task", 4096, NULL, 2, NULL);
+    //xTaskCreate(vTaskTestSequence, "seq_task", 4096, NULL, 2, NULL);
+    xTaskCreate(vTaskUartTest,  "uart_test",  2048, NULL, 2, NULL);
 
 }
- 
