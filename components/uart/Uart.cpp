@@ -77,7 +77,7 @@ void uart_bridge_init(void)
                                  UART_ZYBO_RX_PIN,
                                  UART_PIN_NO_CHANGE,
                                  UART_PIN_NO_CHANGE));
-   ESP_ERROR_CHECK(uart_driver_install(UART_ZYBO_PORT, 128, 0, 0, NULL, 0));
+   ESP_ERROR_CHECK(uart_driver_install(UART_ZYBO_PORT, 512, 0, 0, NULL, 0));
 
     // ── UART1 : Basys (TX seulement) ─────────────────────────────────────
     uart_config_t cfg_basys = {
@@ -94,7 +94,7 @@ void uart_bridge_init(void)
                                  UART_PIN_NO_CHANGE,  // RX — inutilisé
                                  UART_PIN_NO_CHANGE,
                                  UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_driver_install(UART_BASYS_PORT, 128, 256, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(UART_BASYS_PORT, 512, 256, 0, NULL, 0));
 
     // ── Queue angles ──────────────────────────────────────────────────────
     s_angle_queue = xQueueCreate(ANGLE_QUEUE_LEN, sizeof(int8_t));
