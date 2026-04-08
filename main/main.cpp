@@ -451,8 +451,8 @@ extern "C" void app_main(void)
  
     // Décommente pour lancer la séquence automatique au démarrage :
 
-    //xTaskCreate(vTaskTestSequence, "seq_task", 4096, NULL, 2, NULL);
+    xTaskCreate(vTaskTestSequence, "seq_task", 4096, NULL, 2, NULL);
     //xTaskCreate(vTaskUartTest,  "uart_test",  2048, NULL, 2, NULL);
-    xTaskCreate(vTaskAngleMonitor, "angle_mon", 2048, NULL, 2, NULL);
+    //xTaskCreate(vTaskAngleMonitor, "angle_mon", 2048, NULL, 2, NULL);
 
 }
