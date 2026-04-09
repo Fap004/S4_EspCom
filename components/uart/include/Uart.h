@@ -19,7 +19,7 @@ extern "C" {
 
 void uart_bridge_init(void);
 int  uart_zybo_read_angle(int8_t *out_angle);
-void uart_basys_send_rpm(int16_t rpmL, int16_t rpmR);
+void uart_basys_send_speed(int16_t rpm);
 
 #ifdef __cplusplus
 }
