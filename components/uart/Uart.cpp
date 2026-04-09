@@ -2,47 +2,71 @@
 #include "driver/uart.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
+#include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include <string.h>
-#include <stdlib.h>
+#include <inttypes.h>
 
 static const char *TAG = "UART";
 
-static QueueHandle_t s_angle_queue = NULL;
+static QueueHandle_t s_frame_queue = NULL;
 
 // ──────────────────────────────────────────────────────────────────────────────
-// TX loopback : envoie un byte qui incrémente chaque seconde
-// ──────────────────────────────────────────────────────────────────────────────
-static void vTaskUartLoopbackTx(void *arg)
-{
-    uint8_t val = 0;
-    while (true)
-    {
-        uart_write_bytes(UART_NUM_1, (const char*)&val, 1);
-        val++;
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// RX : affiche chaque byte reçu
+// RX : lecture par blocs, regroupe les bytes en paires [angle, speed]
+// Sans header de synchro → on lit par multiples de 2, on aligne sur le premier
 // ──────────────────────────────────────────────────────────────────────────────
 static void vTaskUartZyboRx(void *arg)
 {
-    uint8_t byte;
+    esp_task_wdt_add(NULL);
+
+    uint8_t  buf[128];
+    uint8_t  pending     = 0;       // byte en attente d'être apparié
+    bool     has_pending = false;   // est-ce qu'on a un byte orphelin?
+    uint32_t count       = 0;
+
     while (true)
     {
-        int n = uart_read_bytes(UART_NUM_1, &byte, 1, portMAX_DELAY);
-        if (n == 1)
-        {
-            int8_t val = (int8_t)byte;
-            if (s_angle_queue)
-                xQueueSend(s_angle_queue, &val, 0);
+        esp_task_wdt_reset();
+
+        int len = uart_read_bytes(UART_ZYBO_PORT, buf, sizeof(buf),
+                                  pdMS_TO_TICKS(10));
+
+        if (len <= 0) {
+            vTaskDelay(1);
+            continue;
         }
+
+        for (int i = 0; i < len; i++)
+        {
+            if (!has_pending)
+            {
+                // Premier byte de la paire = angle
+                pending     = buf[i];
+                has_pending = true;
+            }
+            else
+            {
+                // Deuxième byte = vitesse → trame complète
+                zybo_frame_t frame;
+                frame.angle = (int8_t)pending;
+                frame.speed = (int8_t)buf[i];
+                has_pending = false;
+                count++;
+
+                //ESP_LOGI(TAG, "[%6" PRIu32 "]  angle=%4d  |  speed=%3u",
+                //         count, frame.angle, frame.speed);
+
+                if (s_frame_queue)
+                    xQueueSend(s_frame_queue, &frame, 0);
+            }
+        }
+
+        taskYIELD();
     }
 }
+
 // ──────────────────────────────────────────────────────────────────────────────
 void uart_bridge_init(void)
 {
@@ -55,29 +79,28 @@ void uart_bridge_init(void)
         .source_clk = UART_SCLK_DEFAULT,
     };
 
-    ESP_ERROR_CHECK(uart_param_config(UART_NUM_1, &cfg));
-    ESP_ERROR_CHECK(uart_set_pin(UART_NUM_1,
-                                 UART_BASYS_TX_PIN,  // TX → GPIO 19
-                                 UART_ZYBO_RX_PIN,   // RX ← GPIO 16
+    ESP_ERROR_CHECK(uart_param_config(UART_ZYBO_PORT, &cfg));
+    ESP_ERROR_CHECK(uart_set_pin(UART_ZYBO_PORT,
+                                 UART_BASYS_TX_PIN,   // TX → GPIO 19
+                                 UART_ZYBO_RX_PIN,    // RX ← GPIO 18
                                  UART_PIN_NO_CHANGE,
                                  UART_PIN_NO_CHANGE));
-    ESP_ERROR_CHECK(uart_driver_install(UART_NUM_1, 512, 256, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(UART_ZYBO_PORT, 1024 * 2, 256, 0, NULL, 0));
 
-    s_angle_queue = xQueueCreate(ANGLE_QUEUE_LEN, sizeof(int8_t));
-    configASSERT(s_angle_queue != NULL);
+    s_frame_queue = xQueueCreate(ANGLE_QUEUE_LEN, sizeof(zybo_frame_t));
+    configASSERT(s_frame_queue != NULL);
 
-    xTaskCreate(vTaskUartZyboRx,     "uart_rx", 2048, NULL, 4, NULL);
-    xTaskCreate(vTaskUartLoopbackTx, "uart_tx", 2048, NULL, 3, NULL);
+    xTaskCreate(vTaskUartZyboRx, "uart_rx", 4096, NULL, 5, NULL);
 
-    ESP_LOGI(TAG, "UART1 pret — RX GPIO%d | TX GPIO%d | %d baud",
-             UART_ZYBO_RX_PIN, UART_BASYS_TX_PIN, UART_BAUD);
+    //ESP_LOGI(TAG, "UART1 pret — RX GPIO%d | TX GPIO%d | %d baud",
+    //         UART_ZYBO_RX_PIN, UART_BASYS_TX_PIN, UART_BAUD);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-int uart_zybo_read_angle(int8_t *out_angle)
+int uart_zybo_read_frame(zybo_frame_t *out)
 {
-    if (!s_angle_queue || !out_angle) return 0;
-    return (xQueueReceive(s_angle_queue, out_angle, 0) == pdTRUE) ? 1 : 0;
+    if (!s_frame_queue || !out) return 0;
+    return (xQueueReceive(s_frame_queue, out, 0) == pdTRUE) ? 1 : 0;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -88,5 +111,5 @@ void uart_basys_send_speed(int16_t speed_kmh)
         (uint8_t)(speed_kmh & 0xFF),
     };
     uart_write_bytes(UART_BASYS_PORT, (const char*)frame, sizeof(frame));
-    printf("[UART TX] vitesse -> %d km/h\n", speed_kmh);
+    //printf("[UART TX] vitesse -> %d km/h\n", speed_kmh);
 }

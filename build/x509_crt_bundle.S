@@ -1,4 +1,4 @@
-/* * Data converted from C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from C:/Session4/Projet/Code/EspCom/S4_EspCom/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 #if !defined (__APPLE__) && !defined (__linux__)

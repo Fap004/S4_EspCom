@@ -13,8 +13,8 @@ end
 
 # Load bootloader symbols
 set confirm off
-    add-symbol-file C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/bootloader/bootloader.elf
+    add-symbol-file C:/Session4/Projet/Code/EspCom/S4_EspCom/build/bootloader/bootloader.elf
 set confirm on
 
 # Load application symbols
-file C:/Users/labri/OneDrive - USherbrooke/Uni/S4/Projet/ESP_COM/S4_EspCom/build/Cooling_project.elf
+file C:/Session4/Projet/Code/EspCom/S4_EspCom/build/Cooling_project.elf
