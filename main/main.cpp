@@ -6,10 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include "driver/gpio.h"
 
 static const uint8_t robot_mac[6] = { 0x20, 0x6E, 0xF1, 0x0D, 0x4D, 0xB8 };
 
-#define MSG_DATA_LEN 8
+#define MSG_DATA_LEN    8
+#define AXIS_DEBUG_PIN  GPIO_NUM_4
 
 static float g_speed_pct = 0.0f;
 static float g_angle_deg = 0.0f;
@@ -52,7 +54,6 @@ static void vTaskRx(void *arg)
     while (true)
     {
         if (!com_read_msg_wait(data, &len, &seq, pdMS_TO_TICKS(500))) {
-            //printf("[RX] timeout — total=%d\n", msg_count);
             continue;
         }
 
@@ -60,13 +61,6 @@ static void vTaskRx(void *arg)
 
         proto_tlm_t tlm;
         memcpy(&tlm, data, sizeof(proto_tlm_t));
-
-        float speed = tlm.speed_x100 / 100.0f;
-        const char *unit_str = (tlm.unit == PROTO_UNIT_KMH) ? "km/h" :
-                               (tlm.unit == PROTO_UNIT_MPS)  ? "m/s"  : "RPM";
-
-        //printf("[RX] vitesse=%.2f %s | seq=%u | count=%d\n",
-        //       speed, unit_str, seq, msg_count);
 
         uart_basys_send_speed(tlm.speed_x100 / 100);
     }
@@ -82,11 +76,15 @@ static void vTaskTx(void *arg)
 
     for (;;)
     {
-        // Vider la queue, garder uniquement la trame la plus récente
         zybo_frame_t frame;
         while (uart_zybo_read_frame(&frame))
         {
+            // ── X-axis (angle) ──────────────────────────
+            gpio_set_level(AXIS_DEBUG_PIN, 1);
             g_angle_deg = (float)frame.angle / 127.0f * 30.0f;
+            gpio_set_level(AXIS_DEBUG_PIN, 0);
+
+            // ── Y-axis (speed) — GPIO stays LOW ─────────
             g_reverse   = (frame.speed < 0);
             int8_t abs_speed = frame.speed < 0 ? -frame.speed : frame.speed;
             g_speed_pct = (float)abs_speed / 127.0f * 100.0f;
@@ -95,7 +93,6 @@ static void vTaskTx(void *arg)
 
         if (g_running)
             send_cmd(g_speed_pct, g_angle_deg, g_reverse);
-////////////////////CI je veux afficher des valeurs je peux les voir ici je crois/////////////////////////////////////////
         else
             send_cmd(0.0f, 0.0f, false);
 
@@ -106,15 +103,20 @@ static void vTaskTx(void *arg)
 // ──────────────────────────────────────────────────────────────────────────────
 extern "C" void app_main(void)
 {
+    // GPIO debug pin init
+    gpio_config_t io_conf = {
+        .pin_bit_mask = (1ULL << AXIS_DEBUG_PIN),
+        .mode         = GPIO_MODE_OUTPUT,
+        .pull_up_en   = GPIO_PULLUP_DISABLE,
+        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .intr_type    = GPIO_INTR_DISABLE,
+    };
+    gpio_config(&io_conf);
+    gpio_set_level(AXIS_DEBUG_PIN, 0);
+
     com_init(1);
     com_add_peer(robot_mac);
     uart_bridge_init();
-
-    uint8_t my_mac[6];
-    com_get_mac(my_mac);
-    //printf("[NODE] My MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-    //       my_mac[0], my_mac[1], my_mac[2],
-    //       my_mac[3], my_mac[4], my_mac[5]);
 
     xTaskCreate(vTaskRx, "rx_task", 8192, NULL, 5, NULL);
     xTaskCreate(vTaskTx, "tx_task", 4096, NULL, 3, NULL);
