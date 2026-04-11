@@ -11,7 +11,7 @@ extern "C" {
 #define UART_ZYBO_RX_PIN    18
 #define UART_BASYS_PORT     UART_NUM_1
 #define UART_BASYS_TX_PIN   19
-#define UART_BAUD           400000        // ← corrigé (était 1000000)
+#define UART_BAUD           460800        // ← corrigé (était 1000000)
 
 #define UART_ZYBO_FRAME_LEN  2            // ← 2 bytes par trame (angle + vitesse)
 #define UART_BASYS_FRAME_LEN 4

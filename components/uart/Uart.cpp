@@ -50,8 +50,17 @@ static void vTaskUartZyboRx(void *arg)
             {
                 // Deuxième byte = vitesse → trame complète
                 zybo_frame_t frame;
-                frame.angle = (int8_t)pending;
-                frame.speed = (int8_t)buf[i];
+                //frame.angle = (int8_t)pending;
+                //frame.speed = (int8_t)buf[i];
+                int8_t raw_angle = (int8_t)pending;
+                int8_t raw_speed = (int8_t)buf[i];
+
+                // 🚨 correction valeur interdite
+                if (raw_angle == -128) raw_angle = -127;
+                if (raw_speed == -128) raw_speed = -127;
+
+                frame.angle = raw_angle;
+                frame.speed = raw_speed;
                 has_pending = false;
                 count++;
 
