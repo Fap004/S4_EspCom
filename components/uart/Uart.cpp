@@ -13,8 +13,10 @@ static void vTaskUartZyboRx(void *arg)
     esp_task_wdt_add(nullptr);
 
     uint8_t buf[128];
-    uint8_t pending     = 0;
-    bool    has_pending = false;
+
+    typedef enum { WAIT_START, READ_ANGLE, READ_SPEED } parse_state_t;
+    parse_state_t state     = WAIT_START;
+    int8_t        tmp_angle = 0;
 
     while (true)
     {
@@ -34,36 +36,51 @@ static void vTaskUartZyboRx(void *arg)
 
         for (int i = 0; i < len; i++)
         {
-            if (!has_pending)
+            uint8_t b = buf[i];
+
+            // 0x80 = marqueur de début → resync automatique
+            if (b == 0x80)
             {
-                pending     = buf[i];
-                has_pending = true;
+                state = READ_ANGLE;
+                continue;
             }
-            else
+
+            switch (state)
             {
-                int8_t raw_angle = (int8_t)pending;
-                int8_t raw_speed = (int8_t)buf[i];
+                case WAIT_START:
+                    // on attend 0x80, on ignore tout le reste
+                    break;
 
-                if (raw_angle == -128) raw_angle = -127;
-                if (raw_speed == -128) raw_speed = -127;
+                case READ_ANGLE:
+                    tmp_angle = (int8_t)b;
+                    state = READ_SPEED;
+                    break;
 
-                zybo_frame_t frame;
-
-                if (gpio_get_level(UART_SWAP_XY_PIN) == 0)
+                case READ_SPEED:
                 {
-                    frame.angle = raw_speed;
-                    frame.speed = raw_angle;
-                }
-                else
-                {
-                    frame.angle = raw_angle;
-                    frame.speed = raw_speed;
+                    zybo_frame_t frame;
+
+                    if (gpio_get_level(UART_SWAP_XY_PIN) == 1)
+                    {
+                        frame.angle = (int8_t)b;   // speed → angle
+                        frame.speed = tmp_angle;    // angle → speed
+                    }
+                    else
+                    {
+                        frame.angle = tmp_angle;
+                        frame.speed = (int8_t)b;
+                    }
+
+                    if (s_frame_queue)
+                        xQueueSend(s_frame_queue, &frame, 0);
+
+                    state = WAIT_START;
+                    break;
                 }
 
-                has_pending = false;
-
-                if (s_frame_queue)
-                    xQueueSend(s_frame_queue, &frame, 0);
+                default:
+                    state = WAIT_START;
+                    break;
             }
         }
 
