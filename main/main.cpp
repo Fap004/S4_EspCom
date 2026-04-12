@@ -9,25 +9,11 @@
 #include <stdint.h>
 #include <string.h>
 
-
-
-
-/* ============================================================================
- * CONFIG
- * ========================================================================== */
-
 static const uint8_t robot_mac[6] = { 0x20, 0x6E, 0xF1, 0x0D, 0x4D, 0xB8 };
 
 #define MSG_DATA_LEN        8
-#define TX_PERIOD_MS       20     // 50 Hz => bon compromis robot
-#define SMOOTH_ALPHA       0.15f  // filtre exponentiel (0.1–0.2 conseillé)
-
-
-
-
-/* ============================================================================
- * ÉTAT GLOBAL (protégé par logique simple, mono‑task)
- * ========================================================================== */
+#define TX_PERIOD_MS       20
+#define SMOOTH_ALPHA       0.2f
 
 static float g_speed_target_pct = 0.0f;
 static float g_angle_target_deg = 0.0f;
@@ -37,25 +23,16 @@ static bool  g_running          = false;
 static float g_speed_filt_pct   = 0.0f;
 static float g_angle_filt_deg   = 0.0f;
 
-
-
-
-/* ============================================================================
- * ENVOI COMMANDE ROBOT
- * ========================================================================== */
-
+/* ========================================================================== */
 static void send_cmd(float speed_pct, float angle_deg, bool reverse)
 {
-    /* Saturation sécurité */
     if (speed_pct < 0.0f)   speed_pct = 0.0f;
     if (speed_pct > 100.0f) speed_pct = 100.0f;
-
     if (angle_deg < -30.0f) angle_deg = -30.0f;
     if (angle_deg >  30.0f) angle_deg =  30.0f;
 
     uint8_t speed8 = (uint8_t)(speed_pct / 100.0f * 255.0f + 0.5f);
     uint8_t angle6 = (uint8_t)((angle_deg + 30.0f) / 60.0f * 63.0f + 0.5f);
-
     uint8_t dir2   = reverse ? PROTO_DIR_REV : PROTO_DIR_FWD;
 
     uint16_t w = proto_pack_cmd(speed8, angle6, dir2);
@@ -69,13 +46,7 @@ static void send_cmd(float speed_pct, float angle_deg, bool reverse)
     com_send(robot_mac, data, sizeof(data));
 }
 
-
-
-
-/* ============================================================================
- * RÉCEPTION TÉLÉMÉTRIE ROBOT (RX – secondaire)
- * ========================================================================== */
-
+/* ========================================================================== */
 static void vTaskRx(void *arg)
 {
     uint8_t  data[MSG_DATA_LEN];
@@ -84,25 +55,17 @@ static void vTaskRx(void *arg)
 
     while (true)
     {
-        if (!com_read_msg_wait(data, &len, &seq, pdMS_TO_TICKS(500))) {
+        if (!com_read_msg_wait(data, &len, &seq, pdMS_TO_TICKS(500)))
             continue;
-        }
 
         proto_tlm_t tlm;
         memcpy(&tlm, data, sizeof(proto_tlm_t));
 
-        /* Exemple : renvoi vers Basys */
         uart_basys_send_speed(tlm.speed_x100 / 100);
     }
 }
 
-
-
-
-/* ============================================================================
- * TRANSMISSION COMMANDE ROBOT (TX – CRITIQUE)
- * ========================================================================== */
-
+/* ========================================================================== */
 static void vTaskTx(void *arg)
 {
     const TickType_t period = pdMS_TO_TICKS(TX_PERIOD_MS);
@@ -112,66 +75,36 @@ static void vTaskTx(void *arg)
 
     for (;;)
     {
-        /* Lire la DERNIÈRE trame Zybo disponible */
         bool new_frame = false;
-        while (uart_zybo_read_frame(&frame)) {
+        while (uart_zybo_read_frame(&frame))
             new_frame = true;
-        }
 
         if (new_frame)
         {
-            /* Conversion brute */
-            //g_angle_target_deg =
-            //    ((float)frame.angle / 127.0f) * 30.0f;
-
             int8_t safe_angle = frame.angle;
-
-            // Double protection
             if (safe_angle == -128) safe_angle = -127;
-
-            g_angle_target_deg =
-                ((float)safe_angle / 127.0f) * 30.0f;
+            g_angle_target_deg = ((float)safe_angle / 127.0f) * 30.0f;
 
             g_reverse = (frame.speed < 0);
-
             int8_t abs_speed = frame.speed < 0 ? -frame.speed : frame.speed;
-            g_speed_target_pct =
-                ((float)abs_speed / 127.0f) * 100.0f;
+            g_speed_target_pct = ((float)abs_speed / 127.0f) * 100.0f;
 
             g_running = (frame.speed != 0);
         }
 
-        /* ── FILTRE EXPONENTIEL (ANTIJITTER) ───────────────────── */
-        g_angle_filt_deg +=
-            SMOOTH_ALPHA * (g_angle_target_deg - g_angle_filt_deg);
-
-        g_speed_filt_pct +=
-            SMOOTH_ALPHA * (g_speed_target_pct - g_speed_filt_pct);
-
-        /* ── ENVOI COMMANDE ────────────────────────────────────── */
+        g_angle_filt_deg += SMOOTH_ALPHA * (g_angle_target_deg - g_angle_filt_deg);
+        g_speed_filt_pct += SMOOTH_ALPHA * (g_speed_target_pct - g_speed_filt_pct);
 
         if (g_running)
-        {
             send_cmd(g_speed_filt_pct, g_angle_filt_deg, g_reverse);
-        }
         else
-        {
-            // ✅ angle toujours transmis, vitesse nulle seulement
             send_cmd(0.0f, g_angle_filt_deg, false);
-}
-
 
         vTaskDelayUntil(&last, period);
     }
 }
 
-
-
-
-/* ============================================================================
- * APP MAIN
- * ========================================================================== */
-
+/* ========================================================================== */
 extern "C" void app_main(void)
 {
     com_init(1);
