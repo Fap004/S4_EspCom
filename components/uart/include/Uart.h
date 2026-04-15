@@ -12,20 +12,18 @@
 extern "C" {
 #endif
 
-#define UART_ZYBO_PORT     UART_NUM_1
-#define UART_BASYS_PORT    UART_NUM_1
+/* ─── UART unique ─────────────────────────────── */
+#define UART_PORT        UART_NUM_1
 
-#define UART_ZYBO_RX_PIN   GPIO_NUM_18
-#define UART_BASYS_TX_PIN  GPIO_NUM_19
+/* ─── Pins ───────────────────────────────────── */
+#define UART_RX_PIN      GPIO_NUM_18   // Zybo → ESP
+#define UART_TX_PIN      GPIO_NUM_19   // ESP → Basys
 
-#define UART_BAUD          460800
+/* ─── Baudrate ───────────────────────────────── */
+#define UART_BAUD        460800
 
-#define UART_ZYBO_FRAME_LEN   2
-#define UART_BASYS_FRAME_LEN  2
-
-#define ANGLE_QUEUE_LEN    16
-
-#define UART_SWAP_XY_PIN   GPIO_NUM_4    // LOW = swap, HIGH = normal
+#define ANGLE_QUEUE_LEN  16
+#define UART_SWAP_XY_PIN GPIO_NUM_4
 
 typedef struct {
     int8_t angle;
@@ -34,7 +32,7 @@ typedef struct {
 
 void uart_bridge_init(void);
 int  uart_zybo_read_frame(zybo_frame_t *out);
-void uart_basys_send_speed(int16_t rpm);
+void uart_basys_send_speed(int16_t kmh);
 
 #ifdef __cplusplus
 }

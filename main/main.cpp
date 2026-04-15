@@ -9,10 +9,12 @@
 #include <stdint.h>
 #include <string.h>
 
-static const uint8_t robot_mac[6] = { 0x20, 0x6E, 0xF1, 0x0D, 0x4D, 0xB8 };
+static const uint8_t robot_mac[6] = {
+    0x20, 0x6E, 0xF1, 0x0D, 0x4D, 0xB8
+};
 
 #define MSG_DATA_LEN        8
-#define TX_PERIOD_MS       20
+#define TX_PERIOD_MS       10
 #define SMOOTH_ALPHA       0.2f
 
 static float g_speed_target_pct = 0.0f;
@@ -23,7 +25,9 @@ static bool  g_running          = false;
 static float g_speed_filt_pct   = 0.0f;
 static float g_angle_filt_deg   = 0.0f;
 
-/* ========================================================================== */
+/* ========================================================================= */
+/* Envoi commande vers le robot                                              */
+/* ========================================================================= */
 static void send_cmd(float speed_pct, float angle_deg, bool reverse)
 {
     if (speed_pct < 0.0f)   speed_pct = 0.0f;
@@ -46,7 +50,9 @@ static void send_cmd(float speed_pct, float angle_deg, bool reverse)
     com_send(robot_mac, data, sizeof(data));
 }
 
-/* ========================================================================== */
+/* ========================================================================= */
+/* RX : Réception télémétrie robot → envoi direct vers BASYS                */
+/* ========================================================================= */
 static void vTaskRx(void *arg)
 {
     uint8_t  data[MSG_DATA_LEN];
@@ -61,11 +67,19 @@ static void vTaskRx(void *arg)
         proto_tlm_t tlm;
         memcpy(&tlm, data, sizeof(proto_tlm_t));
 
-        uart_basys_send_speed(tlm.speed_x100 / 100);
+        /* IMPORTANT :
+           - La vitesse reçue est DÉJÀ correcte (km/h x100)
+           - Aucun recalcul ici
+           - La Basys doit afficher directement cette valeur
+        */
+        int16_t speed_kmh = tlm.speed_x100 / 100;
+        uart_basys_send_speed(speed_kmh);
     }
 }
 
-/* ========================================================================== */
+/* ========================================================================= */
+/* TX : Commandes joystick → robot                                           */
+/* ========================================================================= */
 static void vTaskTx(void *arg)
 {
     const TickType_t period = pdMS_TO_TICKS(TX_PERIOD_MS);
@@ -104,7 +118,9 @@ static void vTaskTx(void *arg)
     }
 }
 
-/* ========================================================================== */
+/* ========================================================================= */
+/* MAIN                                                                     */
+/* ========================================================================= */
 extern "C" void app_main(void)
 {
     com_init(1);

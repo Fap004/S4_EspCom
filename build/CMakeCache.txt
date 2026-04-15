@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//No help, variable specified on the command line.
+CCACHE_ENABLE:UNINITIALIZED=0
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=C:/Espressif/tools/riscv32-esp-elf/esp-14.2.0_20251107/riscv32-esp-elf/bin/riscv32-esp-elf-addr2line.exe
 
@@ -354,6 +357,9 @@ Mbed TLS_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 Mbed TLS_SOURCE_DIR:STATIC=C:/esp/v5.5.3/esp-idf/components/mbedtls/mbedtls
+
+//No help, variable specified on the command line.
+PYTHON:UNINITIALIZED=C:\Espressif\tools\python\v5.5.3\venv\Scripts\python.exe
 
 //No help, variable specified on the command line.
 PYTHON_DEPS_CHECKED:UNINITIALIZED=1
